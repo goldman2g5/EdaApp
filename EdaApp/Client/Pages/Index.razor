@@ -1,0 +1,240 @@
+﻿@page "/"
+@inject IJSRuntime JS
+@inject BrowserService Browser
+@inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@using EdaApp.Client.Services;
+@using EdaApp.Client.Models;
+@using Newtonsoft.Json;
+@using System.Text;
+
+<MudPaper MinHeight="100vh" Width="100vw" Style="background: transparent;" Elevation="0" Square="true" Class="flex-grow-1 align-center justify-center flex-column">
+    <MudGrid Class="flex-column" Justify="Justify.SpaceBetween">
+        <MudItem Class="d-flex justify-content-center align-content-center flex-row" Style="margin-bottom:10vh">
+            <MudGrid Justify="Justify.SpaceAround" Style="position:absolute">
+                <MudItem Class="d-flex justify-content-center align-content-center" Style="padding:0px; font-family:sans-serif; font-style:italic; color:#18BD4F">
+                    <MudText Style="font-size:38px"> Eда в дом. </MudText>
+                </MudItem>
+
+                    @if (bigWindowSize)
+                    {
+                    <MudItem Class="d-flex justify-content-center align-content-center flex-row">
+                    <MudText Style="margin-right:45px"> Главная </MudText>
+                    <MudText Style="margin-right:45px"> Новые продукты </MudText>
+                    <MudText Style="margin-right:45px"> О нас </MudText>
+                    <MudText> Контакты </MudText>
+                    </MudItem>
+
+                    <MudItem>
+                        <MudButton StartIcon="@Icons.Material.Filled.Person"> </MudButton>
+                    </MudItem>
+                    }
+                    else
+                    {
+                    <MudItem>
+                    <MudNavMenu>
+                            <MudNavGroup Icon="@Icons.Material.Filled.Menu" @bind-Expanded=_isExpanded>
+                            <MudNavLink Href="/users">Главная</MudNavLink>
+                            <MudNavLink Href="/security">Новые продукты</MudNavLink>
+                            <MudNavLink Href="/security">О нас</MudNavLink>
+                        </MudNavGroup>
+                    </MudNavMenu>
+                    </MudItem>
+                    }
+
+
+
+
+
+            </MudGrid>
+            
+            
+        </MudItem>
+
+        <MudItem Class="d-flex justify-content-center align-content-center">
+             <MudText Style="color:black; font-size:48px; padding-right:20px">Наше</MudText>
+            <MudText Style="color:#18BD4F; font-size:48px; font-style:italic;">меню</MudText>
+        </MudItem>
+
+        <MudItem Class="d-flex justify-content-lg-start align-content-center" Style="margin-left:8vw">
+            <MudButton StartIcon="@Icons.Material.Filled.Upload" @onclick="OrderByPriceDesc">По цене</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Download" @onclick="OrderByPrice">По цене</MudButton>
+            <MudButton @onclick="OrderByNew">Сначала новинки</MudButton>
+        </MudItem>
+
+        <MudItem Class="d-flex justify-content-lg-start align-content-center">
+            <MudGrid Justify="Justify.Center">
+                @foreach(var i in items)
+                {
+                    <MudItem>
+                        <MudCard Elevation="3" Style="background-color:#F4F5FA;">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    @if(i.sale != null)
+                                    {
+                                        <MudButton Disabled=true Style="background-color:#FF4C3B; border-radius: 25px;" Size="Size.Small">
+                                            <MudText Style="color:white; font-size:10px">
+                                                Скидка @i.sale %
+                                            </MudText>
+                                        </MudButton>
+                                    }
+                                    @if(i.isnew)
+                                    {
+                                        <MudButton Disabled=true Style="background-color:#FFB12B; border-radius: 25px;" Size="Size.Small">
+                                            <MudText Style="color:#333333; font-size:10px">
+                                                 Новинка
+                                            </MudText>
+                                        </MudButton>
+                                    }
+
+                                </CardHeaderContent>
+                                <CardHeaderActions>
+                                    @if (favorites.Any(x => x.name == i.name))
+                                    {
+                                        <MudIconButton @onclick="() => FavoriteButtonClick(i)" Icon="@Icons.Material.Filled.Favorite" Color="Color.Warning" />
+                                    }
+                                    else
+                                    {
+                                        <MudIconButton @onclick="() => FavoriteButtonClick(i)" Icon="@Icons.Material.Filled.Favorite" Color="Color.Default" />
+                                    }
+                                </CardHeaderActions>
+                            </MudCardHeader>
+                            <MudCardMedia Image="@i.getpng()" Height="250" />
+                            <MudCardContent>
+                                <div class="d-flex justify-content-between align-content-center">
+                                    <MudText Typo="Typo.body2" Style="font-#18BD4Fsize:24px">@i.name</MudText>
+                                    <MudText Typo="Typo.body2" Style="font-size:24px">@i.price Р/КГ</MudText>
+                                </div>
+                                <MudText Style="max-width: 32ch" Typo="Typo.body2">Lorem Ipsum is simply dummy text of the printing and typesetting industry. </MudText>
+                            </MudCardContent>
+                            <MudCardActions Style="padding-bottom:15px">
+                                <MudButton Style="background-color:#18BD4F;" Variant="Variant.Filled">Купить</MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudItem>
+
+        <MudItem Class="d-flex align-center justify-center flex-column" Style="margin-top:50px">
+            <MudPaper Class="d-flex align-center justify-center flex-column" Style="background-image:url(https://i.imgur.com/78ronkW.png); padding:30px">
+
+                <MudText Style="font-size:42px; color:white">
+                    Присоединяйтесь к нам и
+                </MudText>
+                <div class="d-flex justify-content-center align-content-center flex-row">
+                    <MudText Style="font-size:42px; color:white">
+                        получите
+                    </MudText>
+                    <MudText Style="font-size:42px; color:#18BD4F">
+                        &nbspскидку
+                    </MudText>
+                    <MudText Style="font-size:42px; color:white">
+                        &nbspдо 50%
+                    </MudText>
+                </div>
+
+
+                <MudText Style="font-size:15px; margin-top:12px; margin-bottom:20px color:white">
+                    Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's
+                </MudText>
+
+                <form id="form" style="padding:10px; background-color:white">
+                    <input type="text" placeholder="Введите email" />
+                    <MudButton style="background-color:#18BD4F; color:white border-radius: 50px;">
+                        Войти
+                    </MudButton>
+                </form>
+            </MudPaper>
+                
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+
+<style>
+    #form {
+  width: 60%;
+  display: flex;
+  flex-direction: row;
+  border: 1px solid grey;
+  padding: 2px;
+  border-radius: 50px; /*you can remove this to avoid rounded corners on the form*/
+}
+
+input {
+  flex-grow: 2;
+  border: none;
+  border-radius: 50px;
+}
+</style>
+
+@code {
+    bool _isExpanded = true;
+
+    public List<Item> items = new List<Item>();
+    public List<Item> itemsinit = new List<Item>();
+    public List<Item> favorites = new List<Item>();
+
+    private static Boolean bigWindowSize = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Browser.Init(JS);
+        Browser.Resize += UpdatedBrowserWidth;
+        items = await ItemService.GetAll();
+        itemsinit = items;
+        string result = null;
+        //await JS.InvokeAsync<string>("localStorage.removeItem", "favorites");
+        result = await JS.InvokeAsync<string>("localStorage.getItem", "favorites", result);
+        if(result != null)
+        {
+            favorites = JsonConvert.DeserializeObject<List<Item>>(result);
+        }
+    }
+    protected void UpdatedBrowserWidth(object sender, int width)
+    {
+        if (!bigWindowSize && width >= 768)
+        {
+            bigWindowSize = true;
+            base.StateHasChanged();
+        }
+        else if (bigWindowSize && width < 768)
+        {
+            bigWindowSize = false;
+            base.StateHasChanged();
+        }
+    }
+
+    public async Task FavoriteButtonClick(Item item)
+    {
+        if (favorites.Any(x => x.name == item.name))
+        {
+            favorites = favorites.Where(x => x.name != item.name).ToList();
+        }
+        else
+        {
+            favorites.Add(item);
+        }
+        string json = JsonConvert.SerializeObject(favorites);
+        await JS.InvokeVoidAsync("localStorage.setItem", "favorites", json);
+    }
+
+    public void OrderByPrice()
+    {
+        items = itemsinit.OrderBy(x => x.price).ToList();
+        StateHasChanged();
+    }
+
+    public void OrderByPriceDesc()
+    {
+        items = itemsinit.OrderByDescending(x => x.price).ToList();
+        StateHasChanged();
+    }
+
+    public void OrderByNew()
+    {
+        items = itemsinit.OrderByDescending(x => x.isnew).ToList();
+        StateHasChanged();
+    }
+}
